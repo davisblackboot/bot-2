@@ -61,8 +61,15 @@ def main():
         return
     end = datetime.now(timezone.utc) - timedelta(minutes=2)
     start = end - timedelta(days=8)
-    bars = data.get_stock_bars(StockBarsRequest(symbol_or_symbols=SYMBOL, timeframe=TimeFrame.Minute, start=start, end=end)).df
-    if bars.empty:
+bars = data.get_stock_bars(
+    StockBarsRequest(
+        symbol_or_symbols=SYMBOL,
+        timeframe=TimeFrame.Minute,
+        start=start,
+        end=end,
+        feed=DataFeed.IEX
+    )
+).df    if bars.empty:
         print("No market data.")
         return
     if isinstance(bars.index, pd.MultiIndex):
