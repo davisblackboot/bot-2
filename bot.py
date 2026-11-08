@@ -11,6 +11,7 @@ from alpaca.trading.enums import OrderSide, TimeInForce, OrderStatus
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
+from alpaca.data.enums import DataFeed
 
 SYMBOL = "SPY"
 NY = ZoneInfo("America/New_York")
