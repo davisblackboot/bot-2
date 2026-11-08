@@ -69,7 +69,8 @@ bars = data.get_stock_bars(
         end=end,
         feed=DataFeed.IEX
     )
-).df    if bars.empty:
+).df    
+if bars.empty:
         print("No market data.")
         return
     if isinstance(bars.index, pd.MultiIndex):
