@@ -1,25 +1,64 @@
-name: Alpaca $100 paper strategy
+name: Paper intraday bot
+
 on:
   schedule:
-    - cron: '*/5 14-20 * * 1-5'
+    # Attempt to run every 5 minutes, Monday-Friday
+    # Hours: 13:00-21:55 UTC
+    - cron: '*/5 13-21 * * 1-5'
+
+  # Allow manual runs from GitHub Actions
   workflow_dispatch:
+
 permissions:
   contents: read
-concurrency:
-  group: alpaca-100-paper
-  cancel-in-progress: false
+
 jobs:
   trade:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 4
+
+    concurrency:
+      group: alpaca-paper-bot
+      cancel-in-progress: false
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      # Step 1: Download repository files
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install -r requirements.txt
-      - name: Trade (paper only)
+
+      # Step 3: Install required packages
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Step 4: Run Alpaca paper-trading bot
+      - name: Run paper bot
         env:
           ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          PAPER_ONLY: 'true'
         run: python bot.py
+
+      # Step 5: Generate cost and tax report
+      - name: Generate cost and tax estimate
+        if: always()
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          PAPER_ONLY: 'true'
+        run: python report.py
+
+      # Step 6: Save report as downloadable artifact
+      - name: Upload tax report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tax-estimate-${{ github.run_id }}
+          path: report.csv
+          if-no-files-found: ignore
+          retention-days: 30
